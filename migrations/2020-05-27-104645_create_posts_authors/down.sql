@@ -1,0 +1,2 @@
+DROP TABLE Posts;
+DROP TABLE Users;
