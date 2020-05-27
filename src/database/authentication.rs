@@ -1,3 +1,4 @@
+use super::error::SendError;
 use super::models::*;
 use super::schema::*;
 use diesel::pg::PgConnection;
@@ -12,6 +13,7 @@ pub fn create_user(
     username: &str,
     display_name: &str,
     password: &str,
+    is_admin: bool,
 ) -> Result<User, Box<dyn std::error::Error>> {
     let salted_hash = hash::generate(&password).unwrap();
 
@@ -21,6 +23,7 @@ pub fn create_user(
             username: username,
             password_hash: &salted_hash.hash,
             password_salt: &salted_hash.salt,
+            is_admin,
         })
         .get_result::<User>(conn)?;
 
@@ -37,6 +40,18 @@ pub fn get_user(conn: &PgConnection, username: &str) -> Option<User> {
         Ok(user) => Some(user),
         Err(_) => None,
     }
+}
+
+/// Get the list of all users.
+pub fn get_all_users(conn: &PgConnection) -> Result<Vec<User>, SendError> {
+    users::dsl::users
+        .load::<User>(conn)
+        .map_err(|err| err.to_string().into())
+}
+
+/// Return user from a token if the user exists.
+pub fn get_user_from_token(conn: &PgConnection, token: &str) -> Result<Option<User>, SendError> {
+    Ok(None)
 }
 
 /// Verify the password of a user.

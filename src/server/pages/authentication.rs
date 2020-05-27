@@ -1,7 +1,7 @@
+use crate::database::config;
 use crate::handle_body;
 use crate::server::{ErrorResponse, State};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use tide::{Request, Response, Result, StatusCode};
 
 #[derive(Serialize, Deserialize)]
@@ -9,6 +9,8 @@ struct RegisterBody {
     username: String,
     display_name: String,
     password: String,
+    token: Option<String>,
+    is_admin: Option<bool>,
 }
 
 #[derive(Serialize)]
@@ -31,6 +33,35 @@ pub async fn register(mut req: Request<State>) -> Result {
     let conn = req.state().pool.get()?;
     let body: RegisterBody = handle_body!(req.body_json().await);
 
+    // The admin can always register additional users.
+    let is_registrant_admin = match body.token {
+        Some(token) => {
+            crate::database::authentication::get_user_from_token(&conn, &token)
+                .map(|user_opt| {
+                    user_opt.map(|user| user.is_admin).unwrap_or(false)
+                })
+                .unwrap_or(false)
+        }
+        None => false,
+    };
+
+    // Registration is allowed if the 'open registration' setting is on.
+    let is_registration_open = config::CONFIG_OPEN_REGISTRATION.get(&conn)?;
+
+    // Registration is allowed if the database contains no users.
+    let no_users =
+        crate::database::authentication::get_all_users(&conn)?.len() == 0;
+
+    let can_register = is_registrant_admin || is_registration_open || no_users;
+    if !can_register {
+        return Ok(Response::new(StatusCode::BadRequest).body_json(
+            &ErrorResponse {
+                error: "You do not have permission to register.",
+            },
+        )?);
+    }
+
+    // Check whether the username is already used.
     if let Some(_user) =
         crate::database::authentication::get_user(&conn, &body.username)
     {
@@ -41,11 +72,15 @@ pub async fn register(mut req: Request<State>) -> Result {
         )?);
     }
 
+    // Determine whether the new registered user is admin.
+    let is_user_admin = no_users || (is_registrant_admin && body.is_admin == Some(true));
+
     let _user = crate::database::authentication::create_user(
         &conn,
         &body.username,
         &body.display_name,
         &body.password,
+        is_user_admin,
     );
 
     Ok(Response::new(StatusCode::Ok)
