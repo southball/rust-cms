@@ -1,6 +1,5 @@
 CREATE TABLE Users (
-    id SERIAL PRIMARY KEY,
-    username TEXT NOT NULL,
+    username TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
     password_salt TEXT NOT NULL,
     password_hash TEXT NOT NULL
@@ -13,7 +12,7 @@ CREATE TABLE Posts (
     slug TEXT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    author INTEGER REFERENCES Users (id)
-        ON DELETE RESTRICT
+    author TEXT REFERENCES Users (username)
+        ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
