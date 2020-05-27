@@ -49,11 +49,6 @@ pub fn get_all_users(conn: &PgConnection) -> Result<Vec<User>, SendError> {
         .map_err(|err| err.to_string().into())
 }
 
-/// Return user from a token if the user exists.
-pub fn get_user_from_token(conn: &PgConnection, token: &str) -> Result<Option<User>, SendError> {
-    Ok(None)
-}
-
 /// Verify the password of a user.
 pub fn verify_user(
     conn: &PgConnection,

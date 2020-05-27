@@ -1,4 +1,5 @@
 #![feature(const_nonzero_int_methods)]
+use server::State;
 
 #[macro_use]
 extern crate diesel;
@@ -24,9 +25,15 @@ async fn main() -> Result<(), std::io::Error> {
     let templates_path: std::path::PathBuf = std::env::var("TEMPLATES")
         .expect("The environment variable TEMPLATES_PATH must be set.")
         .into();
+    let jwt_secret = std::env::var("JWT_SECRET")
+        .expect("The environmental variable JWT_SECRET must be set.");
 
     // Construct server with connection pool.
-    let server = crate::server::create_server(pool, templates_path);
+    let server = crate::server::create_server(State {
+        pool,
+        templates_path,
+        jwt_secret,
+    });
     server.listen(&listen_interface).await?;
 
     Ok(())

@@ -34,16 +34,15 @@ pub async fn register(mut req: Request<State>) -> Result {
     let body: RegisterBody = handle_body!(req.body_json().await);
 
     // The admin can always register additional users.
-    let is_registrant_admin = match body.token {
-        Some(token) => {
-            crate::database::authentication::get_user_from_token(&conn, &token)
-                .map(|user_opt| {
-                    user_opt.map(|user| user.is_admin).unwrap_or(false)
-                })
-                .unwrap_or(false)
-        }
-        None => false,
-    };
+    let is_registrant_admin =
+        match body.token {
+            Some(token) => crate::server::session::get_user_from_token(
+                &conn, &req.state().jwt_secret, &token,
+            )
+            .map(|user_opt| user_opt.map(|user| user.is_admin).unwrap_or(false))
+            .unwrap_or(false),
+            None => false,
+        };
 
     // Registration is allowed if the 'open registration' setting is on.
     let is_registration_open = config::CONFIG_OPEN_REGISTRATION.get(&conn)?;
@@ -73,7 +72,8 @@ pub async fn register(mut req: Request<State>) -> Result {
     }
 
     // Determine whether the new registered user is admin.
-    let is_user_admin = no_users || (is_registrant_admin && body.is_admin == Some(true));
+    let is_user_admin =
+        no_users || (is_registrant_admin && body.is_admin == Some(true));
 
     let _user = crate::database::authentication::create_user(
         &conn,
@@ -98,8 +98,12 @@ pub async fn login(mut req: Request<State>) -> Result {
     );
 
     if result {
-        Ok(Response::new(StatusCode::Ok)
-            .body_json(&LoginResponse { success: true })?)
+        let user =
+            crate::database::authentication::get_user(&conn, &body.username).unwrap();
+
+        Ok(Response::new(StatusCode::Unauthorized).body_json(
+            &crate::server::session::generate_token_for_user(&req.state().jwt_secret, &user),
+        )?)
     } else {
         Ok(Response::new(StatusCode::Unauthorized).body_json(
             &ErrorResponse {

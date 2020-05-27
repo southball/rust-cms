@@ -7,4 +7,5 @@ use std::path::PathBuf;
 pub struct State {
     pub pool: Pool<ConnectionManager<PgConnection>>,
     pub templates_path: PathBuf,
+    pub jwt_secret: String,
 }

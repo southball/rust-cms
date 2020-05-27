@@ -1,6 +1,7 @@
 pub mod error;
 pub mod pages;
 pub mod server;
+pub mod session;
 pub mod state;
 
 pub use error::ErrorResponse;

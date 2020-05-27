@@ -5,15 +5,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use std::path::PathBuf;
 use tide::Server;
 
-pub fn create_server(
-    pool: Pool<ConnectionManager<PgConnection>>,
-    templates_path: PathBuf,
-) -> Server<State> {
-    let state = State {
-        pool,
-        templates_path,
-    };
-
+pub fn create_server(state: State) -> Server<State> {
     let mut server = tide::with_state(state.clone());
 
     server.at("/").get(pages::index::index);
