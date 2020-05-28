@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include './header.liquid' %}
+    <title>Login | {{ site_name }}</title>
+</head>
+
+<body>
+    <div class="container">
+        {% include 'sitenav.liquid' %}
+
+        <h1>Login</h1>
+
+        {% if error %}
+        <blockquote>{{ error }}</blockquote>
+        {% endif %}
+
+        <form method="POST">
+            <label for="username">Username</label>
+            <input id="username" type="text" name="username" />
+
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" />
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+
+</html>

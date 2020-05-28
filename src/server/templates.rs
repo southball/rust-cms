@@ -57,6 +57,7 @@ pub fn inner_render_template(
     template_path: &std::path::Path,
     partials_path: &std::path::Path,
     globals: &liquid::Object,
+    status_code: tide::StatusCode,
 ) -> tide::Result {
     use tide::{Response, StatusCode};
 
@@ -68,7 +69,7 @@ pub fn inner_render_template(
         .parse_file(&template_path)?;
     let response = template.render(globals)?;
 
-    Ok(Response::new(StatusCode::Ok)
+    Ok(Response::new(status_code)
         .body_string(response)
         .set_mime(mime::TEXT_HTML_UTF_8))
 }
@@ -76,15 +77,39 @@ pub fn inner_render_template(
 /// A function that renders the template as response. This should be returned
 /// from a route.
 pub fn render_template(
-    template_path: &std::path::Path,
-    partials_path: &std::path::Path,
+    request: &tide::Request<crate::server::State>,
+    template_location: &str,
     globals: &liquid::Object,
+    status_code: tide::StatusCode,
 ) -> tide::Result {
-    match inner_render_template(template_path, partials_path, globals) {
+    let template_path = request.state().templates_path.join(template_location);
+    let partials_path = request.state().templates_path.join("partials");
+
+    let conn = request.state().pool.get()?;
+    let session_user = crate::server::session::get_session_user(&request)?;
+    let mut variables = liquid::object!({
+        "site_name": crate::database::config::config_site_name().get(&conn)?,
+        "open_registration": crate::database::config::config_open_registration().get(&conn)?,
+        "is_logged_in": session_user.is_some(),
+        "is_admin": session_user
+                .map(|user| user.is_admin)
+                .unwrap_or(false)
+    });
+
+    globals.iter().for_each(|(key, value)| {
+        variables.insert(key.clone(), value.clone());
+    });
+
+    match inner_render_template(
+        &template_path,
+        &partials_path,
+        &variables,
+        status_code,
+    ) {
         Ok(response) => {
-            println!("Successfully rendered template at {:?}", template_path);   
+            println!("Successfully rendered template at {:?}", template_path);
             Ok(response)
-        },
+        }
         Err(err) => {
             println!("Error when rendering template: {:?}", err);
             Err(err.into())

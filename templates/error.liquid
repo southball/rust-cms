@@ -3,14 +3,15 @@
 
 <head>
     {% include './header.liquid' %}
-    <title>Home | {{ site_name }}</title>
+    <title>Error: {{ title }} | {{ site_name }}</title>
 </head>
 
 <body>
     <div class="container">
         {% include 'sitenav.liquid' %}
 
-        <p>Welcome to {{ site_name }}!</p>
+        <h1>{{ title }}</h1>
+        <p>{{ body }}</p>
     </div>
 </body>
 

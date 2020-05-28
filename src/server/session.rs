@@ -1,72 +1,109 @@
 use crate::database::models::User;
 use crate::error::SendError;
+use crate::server::State;
 use diesel::pg::PgConnection;
+use tide::{http::Cookie, Response};
 
-mod jwt;
+const SESSION_ID_KEY: &'static str = "SESSION_ID";
 
-pub use jwt::JWT;
+pub fn create_session(
+    req: &tide::Request<State>,
+    mut res: tide::Response,
+    username: &str,
+) -> Result<tide::Response, SendError> {
+    use crate::database::models::*;
+    use crate::database::sessions::create_session as db_create_session;
 
-pub fn generate_token_for_user(secret: &str, user: &User) -> JWT {
-    jwt::generate_token(secret, &user.username, user.is_admin)
+    let conn = req
+        .state()
+        .pool
+        .get()
+        .map_err::<SendError, _>(|err| err.to_string().into())
+        .unwrap();
+    let session = db_create_session(
+        &conn,
+        &NewSession {
+            session_id: uuid::Uuid::new_v4().to_string(),
+            username: username.to_string(),
+            expiry: chrono::Utc::now().naive_utc() + chrono::Duration::days(7),
+        },
+    )?;
+
+    res.set_cookie(
+        Cookie::build(SESSION_ID_KEY, session.session_id)
+            .path("/")
+            .finish(),
+    );
+
+    Ok(res)
 }
 
-pub fn get_user_from_token(
-    conn: &PgConnection,
-    secret: &str,
-    token: &str,
-) -> Result<Option<User>, Box<dyn std::error::Error>> {
-    match jwt::decode_token(secret, token) {
-        Ok(token_data) => {
-            let claims: jwt::JWTClaims = token_data.claims;
-            Ok(crate::database::authentication::get_user(conn, &claims.sub))
-        },
-        Err(err) => Err(err.into()),
-    }
+pub fn get_session(
+    req: &tide::Request<State>,
+) -> Result<Option<crate::database::models::Session>, SendError> {
+    let conn = req
+        .state()
+        .pool
+        .get()
+        .map_err::<SendError, _>(|err| err.to_string().into())?;
+
+    let session_id = req
+        .cookie(SESSION_ID_KEY)
+        .map(|cookie| cookie.value().to_string())
+        .unwrap_or("".to_string());
+    let session =
+        crate::database::sessions::get_session_by_id(&conn, &session_id)?
+            .and_then(|session| {
+                if session.expiry >= chrono::Utc::now().naive_utc() {
+                    Some(session)
+                } else {
+                    None
+                }
+            });
+
+    Ok(session)
+}
+
+pub fn get_session_user(
+    req: &tide::Request<State>,
+) -> Result<Option<crate::database::models::User>, SendError> {
+    let session = get_session(req)?;
+    Ok(session.map(|session| {
+        let conn = req.state().pool.get().unwrap();
+        crate::database::authentication::get_user(&conn, &session.username)
+            .unwrap()
+    }))
+}
+
+pub fn destroy_session(mut res: tide::Response) -> tide::Response {
+    res.remove_cookie(Cookie::build(SESSION_ID_KEY, "").path("/").finish());
+    res
 }
 
 pub fn check_request_admin(
     req: &tide::Request<crate::server::State>,
 ) -> Result<bool, SendError> {
-    let conn = req
-        .state()
-        .pool
-        .get()
-        .map_err(|err| SendError::from(err.to_string()))?;
-    let secret = &req.state().jwt_secret;
-
-    match req.header("Authorization") {
-        Some(authentication) => {
-            let key = authentication.get(0)
-                .map(|header| header.to_string())
-                .unwrap_or("".to_string());
-            if key.starts_with("Bearer ") {
-                let token = key[7..].to_string();
-                let user = get_user_from_token(&conn, secret, &token)
-                    .map_err(|err| SendError::from(err.to_string()))?;
-                Ok(user.map(|user| user.is_admin).unwrap_or(false))
-            } else {
-                Ok(false)
-            }
-        }
-        None => Ok(false),
-    }
+    let user = get_session_user(req)?;
+    Ok(user.map(|user| user.is_admin).unwrap_or(false))
 }
 
 #[macro_export]
 macro_rules! require_admin {
     ($req:expr) => {{
         {
-            use crate::server::error::ErrorResponse;
-            use tide::{Response, StatusCode};
+            use crate::server::templates::render_template;
             let is_admin = crate::server::session::check_request_admin($req)?;
 
             if !is_admin {
-                return Ok(Response::new(StatusCode::Forbidden).body_json(
-                    &ErrorResponse {
-                        error:
-                            "You cannot access this page as you are not admin.",
-                    },
-                )?);
+                return render_template(
+                    $req,
+                    "error.liquid",
+                    &liquid::object!({
+                        "title": "Forbidden",
+                        "body": "You are forbidden from accessing this page."
+                    }),
+                    tide::StatusCode::Forbidden
+                );
             }
         }
     }};

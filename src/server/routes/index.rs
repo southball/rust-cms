@@ -8,8 +8,9 @@ pub async fn index(req: Request<State>) -> Result {
     let globals = liquid::object!({ "site_name": site_name });
 
     crate::server::templates::render_template(
-        &req.state().templates_path.join("index.liquid"),
-        &req.state().templates_path.join("partials"),
-        &globals
+        &req,
+        "index.liquid",
+        &globals,
+        tide::StatusCode::Ok,
     )
 }

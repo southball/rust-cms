@@ -10,14 +10,19 @@ pub async fn get_post(mut req: Request<State>) -> Result {
 
     match post {
         Some(post) => render_template(
-            &req.state().templates_path.join("post.liquid"),
-            &req.state().templates_path.join("partials"),
+            &req,
+            "post.liquid",
             &liquid::object!({ "post": post }),
+            tide::StatusCode::Ok,
         ),
         None => render_template(
-            &req.state().templates_path.join("404.liquid"),
-            &req.state().templates_path.join("partials"),
-            &liquid::object!({}),
+            &req,
+            "error.liquid",
+            &liquid::object!({
+                "title": "404 Not Found",
+                "body": "Post not found."
+            }),
+            tide::StatusCode::NotFound,
         ),
     }
 }
@@ -33,13 +38,12 @@ pub async fn get_posts(mut req: Request<State>) -> Result {
         })
         .collect();
 
-    let globals = liquid::object!({
-        "posts": posts,
-    });
-
     render_template(
-        &path.join("posts.liquid"),
-        &path.join("partials"),
-        &globals,
+        &req,
+        "posts.liquid",
+        &liquid::object!({
+            "posts": posts,
+        }),
+        tide::StatusCode::Ok,
     )
 }

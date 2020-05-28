@@ -2,19 +2,23 @@
 <html>
 
 <head>
-    {% include 'header' %}
+    {% include 'header.liquid' %}
+    <title>Admin: All Posts | {{ site_name }}</title>
 </head>
 
 <body>
     <div class="container">
-        {% include 'sitenav' %}
+        {% include 'sitenav.liquid' %}
         
         <h1>Posts</h1>
 
         <ul>
             {% for post in posts %}
             <li>
-                <a href="/post/{{ post.slug }}">{{ post.title }}</a>
+                <a href="/admin/post/{{ post.slug }}">
+                    {{ post.title }}
+                    {% if post.draft %}(draft){% endif %}
+                </a>
             </li>
             {% endfor %}
         </ul>

@@ -18,6 +18,14 @@ table! {
 }
 
 table! {
+    sessions (session_id) {
+        session_id -> Text,
+        username -> Text,
+        expiry -> Timestamp,
+    }
+}
+
+table! {
     users (username) {
         username -> Text,
         display_name -> Text,
@@ -29,9 +37,11 @@ table! {
 }
 
 joinable!(posts -> users (author));
+joinable!(sessions -> users (username));
 
 allow_tables_to_appear_in_same_query!(
     config,
     posts,
+    sessions,
     users,
 );

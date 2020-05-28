@@ -1,7 +1,7 @@
 use super::schema::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Queryable, Serialize, Deserialize)]
 pub struct Post {
     pub id: i32,
     pub draft: bool,
@@ -12,7 +12,7 @@ pub struct Post {
     pub author: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Debug, Insertable, Serialize, Deserialize)]
 #[table_name = "posts"]
 pub struct NewPost {
     pub draft: bool,
@@ -23,7 +23,7 @@ pub struct NewPost {
     pub author: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Queryable, Serialize, Deserialize)]
 pub struct User {
     pub username: String,
     pub display_name: String,
@@ -33,7 +33,7 @@ pub struct User {
     pub last_update: chrono::NaiveDateTime,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Debug, Insertable, Serialize, Deserialize)]
 #[table_name = "users"]
 pub struct NewUser {
     pub username: String,
@@ -43,15 +43,30 @@ pub struct NewUser {
     pub is_admin: bool,
 }
 
-#[derive(Queryable)]
+#[derive(Debug, Queryable)]
 pub struct Config {
     pub config_name: String,
     pub config_value: String,
 }
 
-#[derive(Insertable)]
+#[derive(Debug, Insertable)]
 #[table_name = "config"]
 pub struct NewConfig {
     pub config_name: String,
     pub config_value: String,
+}
+
+#[derive(Debug, Queryable)]
+pub struct Session {
+    pub session_id: String,
+    pub username: String,
+    pub expiry: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Insertable)]
+#[table_name = "sessions"]
+pub struct NewSession {
+    pub session_id: String,
+    pub username: String,
+    pub expiry: chrono::NaiveDateTime,
 }

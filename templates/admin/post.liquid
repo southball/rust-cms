@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include './header.liquid' %}
+    <title>Admin: Edit Post | {{ site_name }}</title>
+</head>
+
+<body>
+    <div class="container">
+        {% include 'sitenav.liquid' %}
+
+        <h1>Edit Post</h1>
+
+        <form method="POST">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" value="{{ post.title | escape }}" />
+
+            <label for="draft">Draft</label>
+            <label>
+                <input type="checkbox" name="draft" id="draft" {% if post.draft %}checked{% endif %} />
+                Is Draft
+            </label>
+
+            <label for="author">Author</label>
+            <input id="author" name="author" type="text" value="{{ post.author | escape }}" />
+
+            <label for="content">Content</label>
+            <textarea id="content" name="content" style="height: 200px;">{{ post.content | escape }}</textarea>
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
+</body>
+
+</html>

@@ -1,7 +1,16 @@
 <div class="nav">
+    <a><b>{{ site_name }}</b></a>
     <a href="/">Home</a>
     <a href="/posts">Posts</a>
+    {% if open_registration %}<a href="/auth/register">Register</a>{% endif %}
+    {% if is_logged_in != true %}
+        <a href="/auth/login">Login</a>
+    {% else %}
+        <a href="/auth/logout">Logout</a>
+    {% endif %}
 </div>
+
+{% if is_admin %}{% include "adminnav.liquid" %}{% endif %}
 
 <style>
     .nav {

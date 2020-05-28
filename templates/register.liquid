@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include './header.liquid' %}
+    <title>Register | {{ site_name }}</title>
+</head>
+
+<body>
+    <div class="container">
+        {% include 'sitenav.liquid' %}
+
+        <h1>Register</h1>
+
+        <form method="POST">
+            <label for="username">Username</label>
+            <input id="username" type="text" name="username" />
+
+            <label for="display_name">Display Name</label>
+            <input id="display_name" type="text" name="display_name" />
+
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" />
+
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+
+</html>
