@@ -7,6 +7,7 @@ extern crate dotenv;
 
 mod database;
 mod server;
+pub mod error;
 
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {

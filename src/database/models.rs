@@ -1,6 +1,7 @@
 use super::schema::*;
+use serde::{Serialize, Deserialize};
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct Post {
     pub id: i32,
     pub draft: bool,
@@ -8,10 +9,21 @@ pub struct Post {
     pub slug: String,
     pub title: String,
     pub content: String,
-    pub author: Option<i32>,
+    pub author: String,
 }
 
-#[derive(Queryable)]
+#[derive(Insertable, Serialize, Deserialize)]
+#[table_name = "posts"]
+pub struct NewPost {
+    pub draft: bool,
+    pub publish_time: chrono::NaiveDateTime,
+    pub slug: String,
+    pub title: String,
+    pub content: String,
+    pub author: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct User {
     pub username: String,
     pub display_name: String,
@@ -21,13 +33,13 @@ pub struct User {
     pub last_update: chrono::NaiveDateTime,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Serialize, Deserialize)]
 #[table_name = "users"]
-pub struct NewUser<'a> {
-    pub username: &'a str,
-    pub display_name: &'a str,
-    pub password_salt: &'a str,
-    pub password_hash: &'a str,
+pub struct NewUser {
+    pub username: String,
+    pub display_name: String,
+    pub password_salt: String,
+    pub password_hash: String,
     pub is_admin: bool,
 }
 

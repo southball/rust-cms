@@ -1,6 +1,6 @@
-use super::error::SendError;
 use super::models::*;
 use super::schema::*;
+use crate::error::SendError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::query_dsl::RunQueryDsl;
@@ -14,20 +14,19 @@ pub fn create_user(
     display_name: &str,
     password: &str,
     is_admin: bool,
-) -> Result<User, Box<dyn std::error::Error>> {
+) -> Result<User, SendError> {
     let salted_hash = hash::generate(&password).unwrap();
 
-    let user = diesel::insert_into(users::table)
+    diesel::insert_into(users::table)
         .values(&NewUser {
-            display_name: display_name,
-            username: username,
-            password_hash: &salted_hash.hash,
-            password_salt: &salted_hash.salt,
+            display_name: display_name.to_string(),
+            username: username.to_string(),
+            password_hash: salted_hash.hash.to_string(),
+            password_salt: salted_hash.salt.to_string(),
             is_admin,
         })
-        .get_result::<User>(conn)?;
-
-    Ok(user)
+        .get_result::<User>(conn)
+        .map_err(|err| err.to_string().into())
 }
 
 /// Finds a user with the given username. If the user is not found, none is

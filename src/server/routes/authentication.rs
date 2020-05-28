@@ -45,7 +45,7 @@ pub async fn register(mut req: Request<State>) -> Result {
         };
 
     // Registration is allowed if the 'open registration' setting is on.
-    let is_registration_open = config::CONFIG_OPEN_REGISTRATION.get(&conn)?;
+    let is_registration_open = config::config_open_registration().get(&conn)?;
 
     // Registration is allowed if the database contains no users.
     let no_users =

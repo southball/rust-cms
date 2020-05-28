@@ -14,7 +14,7 @@ CREATE TABLE Posts (
     slug TEXT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    author TEXT REFERENCES Users (username)
+    author TEXT NOT NULL REFERENCES Users (username)
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );

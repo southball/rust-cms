@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include './header.liquid' %}
+</head>
+
+<body>
+    <div class="container">
+        {% include 'sitenav.liquid' %}
+
+        <h1>{{ post.title }}</h1>
+        <pre><code>{{ post.content }}</code></pre>
+    </div>
+</body>
+
+</html>

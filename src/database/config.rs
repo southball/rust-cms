@@ -1,6 +1,6 @@
-use super::error::SendError;
 use crate::database::models::*;
 use crate::database::schema::*;
+use crate::error::SendError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
@@ -13,10 +13,19 @@ where
     pub default_value: T,
 }
 
-pub const CONFIG_OPEN_REGISTRATION: AppConfig<bool> = AppConfig {
-    name: "OPEN_REGISTRATION",
-    default_value: false,
-};
+pub fn config_open_registration() -> AppConfig<bool> {
+    AppConfig {
+        name: "OPEN_REGISTRATION",
+        default_value: false,
+    }
+}
+
+pub fn config_site_name() -> AppConfig<String> {
+    AppConfig {
+        name: "SITE_NAME",
+        default_value: "No Site Name".to_string(),
+    }
+}
 
 impl<T> AppConfig<T>
 where

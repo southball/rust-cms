@@ -9,8 +9,8 @@ pub struct JWT {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JWTClaims {
     pub sub: String,
-    pub exp: chrono::DateTime<chrono::Utc>,
-    pub iat: chrono::DateTime<chrono::Utc>,
+    pub exp: u64,
+    pub iat: u64,
     pub is_admin: bool,
     pub can_refresh: bool,
 }
@@ -23,17 +23,18 @@ pub fn generate_token_helper(
 ) -> String {
     use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 
-    let exp = if can_refresh {
+    let iat: u64 = chrono::Utc::now().timestamp() as u64;
+    let exp: u64 = if can_refresh {
         chrono::Utc::now() + chrono::Duration::days(7)
     } else {
         chrono::Utc::now() + chrono::Duration::minutes(20)
-    };
+    }.timestamp() as u64;
 
     encode(
         &Header::new(Algorithm::HS256),
         &JWTClaims {
             sub: username.to_string(),
-            iat: chrono::Utc::now(),
+            iat,
             exp,
             is_admin,
             can_refresh,

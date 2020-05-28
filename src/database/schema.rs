@@ -13,7 +13,7 @@ table! {
         slug -> Text,
         title -> Text,
         content -> Text,
-        author -> Nullable<Text>,
+        author -> Text,
     }
 }
 
