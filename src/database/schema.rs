@@ -26,6 +26,13 @@ table! {
 }
 
 table! {
+    tags (tag_name, post_id) {
+        tag_name -> Text,
+        post_id -> Int4,
+    }
+}
+
+table! {
     users (username) {
         username -> Text,
         display_name -> Text,
@@ -38,10 +45,12 @@ table! {
 
 joinable!(posts -> users (author));
 joinable!(sessions -> users (username));
+joinable!(tags -> posts (post_id));
 
 allow_tables_to_appear_in_same_query!(
     config,
     posts,
     sessions,
+    tags,
     users,
 );

@@ -2,7 +2,8 @@
     <a><b>{{ site_name }}</b></a>
     <a href="/">Home</a>
     <a href="/posts">Posts</a>
-    {% if open_registration %}<a href="/auth/register">Register</a>{% endif %}
+    <a href="/tags">Tags</a>
+    {% if open_registration and is_logged_in == false %}<a href="/auth/register">Register</a>{% endif %}
     {% if is_logged_in != true %}
         <a href="/auth/login">Login</a>
     {% else %}
@@ -18,10 +19,11 @@
         padding-bottom: 1rem;
         margin-bottom: 1rem;
         width: 100%;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid #cccccc;
     }
 
     .nav a {
         margin-right: 1rem;
+        color: #5d2e79;
     }
 </style>

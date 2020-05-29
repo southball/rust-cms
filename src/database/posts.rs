@@ -27,3 +27,20 @@ pub fn get_all_posts(conn: &PgConnection) -> Result<Vec<Post>, SendError> {
         .load::<Post>(conn)
         .map_err(|err| err.to_string().into())
 }
+
+pub fn get_posts_by_tag(conn: &PgConnection, tag: &str) -> Result<Vec<Post>, SendError> {
+    posts::table
+        .left_join(tags::table.on(posts::id.eq(tags::post_id)))
+        .filter(tags::tag_name.eq(tag))
+        .select((
+            posts::id,
+            posts::draft,
+            posts::publish_time,
+            posts::slug,
+            posts::title,
+            posts::content,
+            posts::author
+        ))
+        .load::<Post>(conn)
+        .map_err(|err| err.to_string().into())
+}

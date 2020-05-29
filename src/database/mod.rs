@@ -5,3 +5,4 @@ pub mod models;
 pub mod posts;
 pub mod schema;
 pub mod sessions;
+pub mod tags;

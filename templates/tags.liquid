@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include 'header.liquid' %}
+    <title>All Posts | {{ site_name }}</title>
+</head>
+
+<body>
+    <div class="container">
+        {% include 'sitenav.liquid' %}
+        
+        <h1>Posts</h1>
+
+        <ul>
+            {% for tag in tags %}
+            <li>
+                <a href="/tag/{{ tag.tag_name }}">{{ tag.tag_name }} ({{ tag.count }})</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+
+</html>

@@ -2,16 +2,27 @@
 <html>
 
 <head>
-    {% include './header.liquid' %}
+    {% include "./header.liquid" %}
     <title>{{ post.title | escape }} | {{ site_name }}</title>
 </head>
 
 <body>
     <div class="container">
-        {% include 'sitenav.liquid' %}
+        {% include "sitenav.liquid" %}
+
+        {% if is_admin %}
+        <a class="button button-outline" href="/admin/post/{{ post.slug }}">Edit Post</a>
+        {% endif %}
 
         <h1>{{ post.title | escape }}</h1>
-        <pre><code>{{ post.content | escape }}</code></pre>
+
+        <div>
+            {% for tag in post_tags %}
+            <a href="/tag/{{ tag }}" class="tag">{{ tag }}</a>
+            {% endfor %}
+        </div>
+
+        <blockquote>{{ post.content | escape }}</blockquote>
     </div>
 </body>
 

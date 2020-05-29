@@ -1,7 +1,8 @@
 use super::schema::*;
+use std::clone::Clone;
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Queryable, Serialize, Deserialize)]
+#[derive(Clone, Debug, Queryable, Serialize, Deserialize)]
 pub struct Post {
     pub id: i32,
     pub draft: bool,
@@ -69,4 +70,23 @@ pub struct NewSession {
     pub session_id: String,
     pub username: String,
     pub expiry: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Queryable)]
+pub struct Tag {
+    pub tag_name: String,
+    pub post_id: i32,
+}
+
+#[derive(Debug, Insertable)]
+#[table_name = "tags"]
+pub struct NewTag {
+    pub tag_name: String,
+    pub post_id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TagWithCount {
+    pub tag_name: String,
+    pub count: i64,
 }

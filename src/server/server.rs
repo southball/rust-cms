@@ -33,6 +33,8 @@ pub fn create_server(state: State) -> Server<State> {
 
     server.at("/posts").get(routes::posts::get_posts);
     server.at("/post/:slug").get(routes::posts::get_post);
+    server.at("/tags").get(routes::tags::all_tags_page);
+    server.at("/tag/:tag").get(routes::tags::single_tag_page);
 
     // The custom 404 handler is disabled due to Tide not supporting custom 404
     // handler at the moment.

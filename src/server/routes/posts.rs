@@ -6,13 +6,14 @@ use tide::{Request, Response, Result, StatusCode};
 pub async fn get_post(mut req: Request<State>) -> Result {
     let conn = req.state().pool.get()?;
     let slug: String = req.param("slug").unwrap_or("".to_string());
-    let post = crate::database::posts::get_post_by_slug(&conn, &slug)?;
+    let post = crate::database::posts::get_post_by_slug(&conn, &slug)?
+        .map(|post| (post.clone(), crate::database::tags::get_tags_from_post(&conn, &post).unwrap_or(vec![])));
 
     match post {
-        Some(post) => render_template(
+        Some((post, post_tags)) => render_template(
             &req,
             "post.liquid",
-            &liquid::object!({ "post": post }),
+            &liquid::object!({ "post": post, "post_tags": post_tags }),
             tide::StatusCode::Ok,
         ),
         None => render_template(
